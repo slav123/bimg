@@ -10,7 +10,7 @@ import (
 	"errors"
 	"os"
 	"runtime"
-	"strings"
+	//"strings"
 	"sync"
 	"unsafe"
 )
@@ -332,6 +332,7 @@ func vipsAffine(input *C.struct__VipsImage, residual float64, i Interpolator) (*
 	return image, nil
 }
 
+/*
 func vipsImageType(buf []byte) ImageType {
 	imageType := UNKNOWN
 
@@ -362,6 +363,29 @@ func vipsImageType(buf []byte) ImageType {
 	}
 
 	return imageType
+}
+*/
+
+func vipsImageType(bytes []byte) ImageType {
+
+	if len(bytes) == 0 {
+		return UNKNOWN
+	}
+
+	if bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47 {
+		return PNG
+	}
+	if bytes[0] == 0xFF && bytes[1] == 0xD8 {
+		return JPEG
+	}
+
+	if bytes[0] == 0x52 && bytes[1] == 0x49 {
+		return WEBP
+	}
+	if bytes[0] == 0x49 && bytes[1] == 0x49 {
+		return TIFF
+	}
+	return UNKNOWN
 }
 
 func catchVipsError() error {
