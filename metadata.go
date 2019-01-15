@@ -6,11 +6,13 @@ package bimg
 */
 import "C"
 
+// ImageSize represents the image width and height values
 type ImageSize struct {
 	Width  int
 	Height int
 }
 
+// ImageMetadata represents the basic metadata fields
 type ImageMetadata struct {
 	Orientation int
 	Channels    int
@@ -18,10 +20,11 @@ type ImageMetadata struct {
 	Profile     bool
 	Type        string
 	Space       string
+	Colourspace string
 	Size        ImageSize
 }
 
-// Get the image size by width and height pixels
+// Size returns the image size by width and height pixels.
 func Size(buf []byte) (ImageSize, error) {
 	metadata, err := Metadata(buf)
 	if err != nil {
@@ -34,7 +37,18 @@ func Size(buf []byte) (ImageSize, error) {
 	}, nil
 }
 
-// Extract the image metadata (size, type, alpha channel, profile, EXIF orientation...)
+// ColourspaceIsSupported checks if the image colourspace is supported by libvips.
+func ColourspaceIsSupported(buf []byte) (bool, error) {
+	return vipsColourspaceIsSupportedBuffer(buf)
+}
+
+// ImageInterpretation returns the image interpretation type.
+// See: https://jcupitt.github.io/libvips/API/current/VipsImage.html#VipsInterpretation
+func ImageInterpretation(buf []byte) (Interpretation, error) {
+	return vipsInterpretationBuffer(buf)
+}
+
+// Metadata returns the image metadata (size, type, alpha channel, profile, EXIF orientation...).
 func Metadata(buf []byte) (ImageMetadata, error) {
 	defer C.vips_thread_shutdown()
 
@@ -56,7 +70,7 @@ func Metadata(buf []byte) (ImageMetadata, error) {
 		Alpha:       vipsHasAlpha(image),
 		Profile:     vipsHasProfile(image),
 		Space:       vipsSpace(image),
-		Type:        getImageTypeName(imageType),
+		Type:        ImageTypeName(imageType),
 	}
 
 	return metadata, nil
