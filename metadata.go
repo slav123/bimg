@@ -52,7 +52,7 @@ func ImageInterpretation(buf []byte) (Interpretation, error) {
 func Metadata(buf []byte) (ImageMetadata, error) {
 	defer C.vips_thread_shutdown()
 
-	image, imageType, err := vipsRead(buf)
+	image, imageType, err := vipsRead(buf, 0, 0, 0, 0)
 	if err != nil {
 		return ImageMetadata{}, err
 	}

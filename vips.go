@@ -12,6 +12,8 @@ import (
 	"math"
 	"os"
 	"runtime"
+	"strings"
+
 	//"strings"
 	"sync"
 	"unsafe"
@@ -292,9 +294,33 @@ func vipsWatermark(image *C.VipsImage, w Watermark) (*C.VipsImage, error) {
 	return out, nil
 }
 
-func vipsRead(buf []byte) (*C.VipsImage, ImageType, error) {
+func vipsRead(buf []byte, page int32, n int32, dpi float32, scale float32) (*C.VipsImage, ImageType, error) {
 	var image *C.VipsImage
 	imageType := vipsImageType(buf)
+
+	// work on extra params for PDF
+
+	// process and sense check params
+	/* Use page to select a page to render, numbering from zero.
+	Use n to select the number of pages to render. The default is 1. Pages are rendered in a vertical column, with each individual page aligned to the left. Set to -1 to mean "until the end of the document". Use vips_grid() to change page layout.
+	Use dpi to set the rendering resolution. The default is 72. Alternatively, you can scale the rendering from the default 1 point == 1 pixel by setting scale .*/
+
+	// work on 1st page only
+	if page == 0 {
+		page = 1
+	}
+
+	if n == 0 {
+		n = 1
+	}
+
+	if dpi == 0 {
+		dpi = 72
+	}
+
+	if scale == 0 {
+		scale = 1
+	}
 
 	if imageType == UNKNOWN {
 		return nil, UNKNOWN, errors.New("Unsupported image format")
@@ -303,7 +329,9 @@ func vipsRead(buf []byte) (*C.VipsImage, ImageType, error) {
 	length := C.size_t(len(buf))
 	imageBuf := unsafe.Pointer(&buf[0])
 
-	err := C.vips_init_image(imageBuf, length, C.int(imageType), &image)
+	//vips_init_image (void *buf, size_t len, int imageType, int page, int n, double dpi, double scale, VipsImage **out) {
+
+	err := C.vips_init_image(imageBuf, length, C.int(imageType), C.int(page), C.int(n), C.double(dpi), C.double(scale), &image)
 	if err != 0 {
 		return nil, UNKNOWN, catchVipsError()
 	}
@@ -312,7 +340,7 @@ func vipsRead(buf []byte) (*C.VipsImage, ImageType, error) {
 }
 
 func vipsColourspaceIsSupportedBuffer(buf []byte) (bool, error) {
-	image, _, err := vipsRead(buf)
+	image, _, err := vipsRead(buf, 0, 0, 0, 0)
 	if err != nil {
 		return false, err
 	}
@@ -325,7 +353,7 @@ func vipsColourspaceIsSupported(image *C.VipsImage) bool {
 }
 
 func vipsInterpretationBuffer(buf []byte) (Interpretation, error) {
-	image, _, err := vipsRead(buf)
+	image, _, err := vipsRead(buf, 0, 0, 0, 0)
 	if err != nil {
 		return InterpretationError, err
 	}
@@ -604,7 +632,6 @@ func vipsAffine(input *C.VipsImage, residualx, residualy float64, i Interpolator
 	return image, nil
 }
 
-/*
 func vipsImageType(buf []byte) ImageType {
 	if len(buf) < 12 {
 		return UNKNOWN
@@ -644,29 +671,6 @@ func readImageType(buf []byte) string {
 	imageBuf := unsafe.Pointer(&buf[0])
 	load := C.vips_foreign_find_load_buffer(imageBuf, length)
 	return C.GoString(load)
-}
-*/
-
-func vipsImageType(bytes []byte) ImageType {
-
-	if len(bytes) == 0 {
-		return UNKNOWN
-	}
-
-	if bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47 {
-		return PNG
-	}
-	if bytes[0] == 0xFF && bytes[1] == 0xD8 {
-		return JPEG
-	}
-
-	if bytes[0] == 0x52 && bytes[1] == 0x49 {
-		return WEBP
-	}
-	if bytes[0] == 0x49 && bytes[1] == 0x49 {
-		return TIFF
-	}
-	return UNKNOWN
 }
 
 func catchVipsError() error {
@@ -712,7 +716,7 @@ func max(x int) int {
 func vipsDrawWatermark(image *C.VipsImage, o WatermarkImage) (*C.VipsImage, error) {
 	var out *C.VipsImage
 
-	watermark, _, e := vipsRead(o.Buf)
+	watermark, _, e := vipsRead(o.Buf, 0, 0, 0, 0)
 	if e != nil {
 		return nil, e
 	}

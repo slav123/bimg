@@ -347,8 +347,16 @@ vips_flatten_background_brigde(VipsImage *in, VipsImage **out, double r, double 
 	);
 }
 
+// pass extra params to loader
+// https://jcupitt.github.io/libvips/API/8.5/VipsForeignSave.html#vips-pdfload
+/*
+    page : gint, load this page, numbered from zero
+    n : gint, load this many pages
+    dpi : gdouble, render at this DPI
+    scale : gdouble, scale render by this factor
+*/
 int
-vips_init_image (void *buf, size_t len, int imageType, VipsImage **out) {
+vips_init_image (void *buf, size_t len, int imageType, int page, int n, double dpi, double scale, VipsImage **out) {
 	int code = 1;
 
 	if (imageType == JPEG) {
@@ -364,7 +372,7 @@ vips_init_image (void *buf, size_t len, int imageType, VipsImage **out) {
 	} else if (imageType == GIF) {
 		code = vips_gifload_buffer(buf, len, out, "access", VIPS_ACCESS_RANDOM, NULL);
 	} else if (imageType == PDF) {
-		code = vips_pdfload_buffer(buf, len, out, "access", VIPS_ACCESS_RANDOM, NULL);
+		code = vips_pdfload_buffer(buf, len, out, "access", VIPS_ACCESS_RANDOM, "page", page, "n", n, "dpi", dpi, "scale", scale, NULL);
 	} else if (imageType == SVG) {
 		code = vips_svgload_buffer(buf, len, out, "access", VIPS_ACCESS_RANDOM, NULL);
 #endif

@@ -223,4 +223,8 @@ type Options struct {
 	Sharpen        Sharpen
 	Threshold      float64
 	OutputICC      string
+	Page           int
+	N              int
+	Scale          float32
+	Dpi            float32
 }
