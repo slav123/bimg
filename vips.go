@@ -306,9 +306,9 @@ func vipsRead(buf []byte, page int32, n int32, dpi float32, scale float32) (*C.V
 	Use dpi to set the rendering resolution. The default is 72. Alternatively, you can scale the rendering from the default 1 point == 1 pixel by setting scale .*/
 
 	// work on 1st page only
-	if page == 0 {
+	/*if page == 0 {
 		page = 1
-	}
+	}*/
 
 	if n == 0 {
 		n = 1

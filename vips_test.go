@@ -18,7 +18,7 @@ func TestVipsRead(t *testing.T) {
 	}
 
 	for _, file := range files {
-		image, imageType, _ := vipsRead(readImage(file.name))
+		image, imageType, _ := vipsRead(readImage(file.name), 0, 0, 0, 0)
 		if image == nil {
 			t.Fatal("Empty image")
 		}
@@ -32,7 +32,7 @@ func TestVipsSave(t *testing.T) {
 	types := [...]ImageType{JPEG, PNG, WEBP}
 
 	for _, typ := range types {
-		image, _, _ := vipsRead(readImage("test.jpg"))
+		image, _, _ := vipsRead(readImage("test.jpg"), 0, 0, 0, 0)
 		options := vipsSaveOptions{Quality: 95, Type: typ, StripMetadata: true}
 
 		buf, err := vipsSave(image, options)
@@ -49,7 +49,7 @@ func TestVipsSaveTiff(t *testing.T) {
 	if !IsTypeSupportedSave(TIFF) {
 		t.Skipf("Format %#v is not supported", ImageTypes[TIFF])
 	}
-	image, _, _ := vipsRead(readImage("test.jpg"))
+	image, _, _ := vipsRead(readImage("test.jpg"), 0, 0, 0, 0)
 	options := vipsSaveOptions{Quality: 95, Type: TIFF}
 	buf, _ := vipsSave(image, options)
 
@@ -68,7 +68,7 @@ func TestVipsRotate(t *testing.T) {
 	}
 
 	for _, file := range files {
-		image, _, _ := vipsRead(readImage(file.name))
+		image, _, _ := vipsRead(readImage(file.name), 0, 0, 0, 0)
 
 		newImg, err := vipsRotate(image, file.rotate)
 		if err != nil {
@@ -83,7 +83,7 @@ func TestVipsRotate(t *testing.T) {
 }
 
 func TestVipsZoom(t *testing.T) {
-	image, _, _ := vipsRead(readImage("test.jpg"))
+	image, _, _ := vipsRead(readImage("test.jpg"), 0, 0, 0, 0)
 
 	newImg, err := vipsZoom(image, 1)
 	if err != nil {
@@ -97,7 +97,7 @@ func TestVipsZoom(t *testing.T) {
 }
 
 func TestVipsWatermark(t *testing.T) {
-	image, _, _ := vipsRead(readImage("test.jpg"))
+	image, _, _ := vipsRead(readImage("test.jpg"), 0, 0, 0, 0)
 
 	watermark := Watermark{
 		Text:       "Copy me if you can",
@@ -121,7 +121,7 @@ func TestVipsWatermark(t *testing.T) {
 }
 
 func TestVipsWatermarkWithImage(t *testing.T) {
-	image, _, _ := vipsRead(readImage("test.jpg"))
+	image, _, _ := vipsRead(readImage("test.jpg"), 0, 0, 0, 0)
 
 	watermark := readImage("transparent.png")
 
